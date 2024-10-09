@@ -1,44 +1,44 @@
 module Data.ByteString
-( module Node.Encoding
+  ( module Node.Encoding
 
-, Octet
-, ByteString
+  , Octet
+  , ByteString
 
-, unsafeFreeze
-, unsafeThaw
+  , unsafeFreeze
+  , unsafeThaw
 
-, empty
-, singleton
-, pack
-, unpack
+  , empty
+  , singleton
+  , pack
+  , unpack
 
-, index
-, (!!)
-, unsafeIndex
-, cons
-, snoc
-, uncons
-, unsnoc
-, head
-, tail
-, last
-, init
-, length
-, isEmpty
+  , index
+  , (!!)
+  , unsafeIndex
+  , cons
+  , snoc
+  , uncons
+  , unsnoc
+  , head
+  , tail
+  , last
+  , init
+  , length
+  , isEmpty
 
-, map
-, reverse
+  , map
+  , reverse
 
-, Foldable
-, foldableOfOctet
-, foldl
-, foldr
+  , Foldable
+  , foldableOfOctet
+  , foldl
+  , foldr
 
-, fromString
-, toString
-, toUTF8
-, fromUTF8
-) where
+  , fromString
+  , toString
+  , toUTF8
+  , fromUTF8
+  ) where
 
 import Effect (Effect)
 import Effect.Exception (catchException)
@@ -46,7 +46,7 @@ import Effect.Unsafe (unsafePerformEffect)
 import Data.Array as Array
 import Data.Foldable (class Foldable, foldMapDefaultL)
 import Data.Leibniz (type (~), Leibniz(..), coerceSymm)
-import Data.Maybe (Maybe (..), fromJust)
+import Data.Maybe (Maybe(..), fromJust)
 import Node.Buffer (Buffer)
 import Node.Buffer as Buffer
 import Node.Encoding (Encoding(..))
@@ -66,22 +66,22 @@ type Octet = Int / Mod256
 newtype ByteString = ByteString Buffer
 
 instance semigroupByteString :: Semigroup ByteString where
-    append a b = unsafeFreeze $ unsafePerformEffect $ Buffer.concat [unsafeThaw a, unsafeThaw b]
+  append a b = unsafeFreeze $ unsafePerformEffect $ Buffer.concat [ unsafeThaw a, unsafeThaw b ]
 
 instance monoidByteString :: Monoid ByteString where
-    mempty = empty
+  mempty = empty
 
 instance eqByteString :: Eq ByteString where
-    eq a b = unpack a == unpack b
+  eq a b = unpack a == unpack b
 
 instance ordByteString :: Ord ByteString where
-    compare a b = unpack a `compare` unpack b
+  compare a b = unpack a `compare` unpack b
 
 instance arbitraryByteString :: Arbitrary ByteString where
-    arbitrary = toUTF8 <$> arbitrary
+  arbitrary = toUTF8 <$> arbitrary
 
 instance showByteString :: Show ByteString where
-    show bs = "(pack " <> show (unpack bs) <> ")"
+  show bs = "(pack " <> show (unpack bs) <> ")"
 
 --------------------------------------------------------------------------------
 
@@ -112,7 +112,8 @@ pack = unsafeFreeze <<< unsafePerformEffect <<< Buffer.fromArray <<< Prelude.map
 -- | *Θ(n)* Get the bytes from a byte string.
 unpack :: ByteString -> Array Octet
 unpack = coerce <<< unsafePerformEffect <<< Buffer.toArray <<< unsafeThaw
-  where coerce = unsafeCoerce :: Array Int -> Array Octet
+  where
+  coerce = unsafeCoerce :: Array Int -> Array Octet
 
 --------------------------------------------------------------------------------
 
@@ -128,11 +129,11 @@ foreign import unsafeIndex :: ByteString -> Int -> Octet
 
 -- https://github.com/purescript-node/purescript-node-buffer/issues/14
 foreign import realGetAtOffset
-    :: (∀ a. Maybe a)
-    -> (∀ a. a -> Maybe a)
-    -> Int
-    -> Buffer
-    -> Effect (Maybe Octet)
+  :: (∀ a. Maybe a)
+  -> (∀ a. a -> Maybe a)
+  -> Int
+  -> Buffer
+  -> Effect (Maybe Octet)
 
 -- | *Θ(n)* Prepend a byte.
 cons :: Octet -> ByteString -> ByteString
@@ -143,14 +144,14 @@ snoc :: ByteString -> Octet -> ByteString
 snoc bs b = bs <> singleton b
 
 -- | *Θ(n)* Unprepend a byte.
-uncons :: ByteString -> Maybe {head :: Octet, tail :: ByteString}
+uncons :: ByteString -> Maybe { head :: Octet, tail :: ByteString }
 uncons bs = Array.uncons (unpack bs)
-            <#> case _ of {head: h, tail: t} -> {head: h, tail: pack t}
+  <#> case _ of { head: h, tail: t } -> { head: h, tail: pack t }
 
 -- | *Θ(n)* Unappend a byte.
-unsnoc :: ByteString -> Maybe {init :: ByteString, last :: Octet}
+unsnoc :: ByteString -> Maybe { init :: ByteString, last :: Octet }
 unsnoc bs = Array.unsnoc (unpack bs)
-            <#> case _ of {init: i, last: l} -> {init: pack i, last: l}
+  <#> case _ of { init: i, last: l } -> { init: pack i, last: l }
 
 -- | *O(1)* Get the first byte.
 head :: ByteString -> Maybe Octet
@@ -197,13 +198,15 @@ newtype Foldable a = Foldable ByteString
 -- derive instance newtypeFoldable :: Newtype (Foldable (Int / Mod256)) _
 
 instance foldableFoldable :: Foldable Foldable where
-    foldMap = foldMapDefaultL
-    foldl f z fb@(Foldable b) = foldl f' z b
-        where f' x o = f x (coerceSymm leibniz o)
-              leibniz = foldableOfOctet fb
-    foldr f z fb@(Foldable b) = foldr f' z b
-        where f' o x = f (coerceSymm leibniz o) x
-              leibniz = foldableOfOctet fb
+  foldMap = foldMapDefaultL
+  foldl f z fb@(Foldable b) = foldl f' z b
+    where
+    f' x o = f x (coerceSymm leibniz o)
+    leibniz = foldableOfOctet fb
+  foldr f z fb@(Foldable b) = foldr f' z b
+    where
+    f' o x = f (coerceSymm leibniz o) x
+    leibniz = foldableOfOctet fb
 
 -- | *O(1)* Witness that foldable byte strings can only contain octets.
 foldableOfOctet :: ∀ a. Foldable a -> a ~ Octet
@@ -221,7 +224,7 @@ foreign import foldr :: ∀ a. (Octet -> a -> a) -> a -> ByteString -> a
 fromString :: String -> Encoding -> Maybe ByteString
 fromString s e = Prelude.map unsafeFreeze <<< unsafePerformEffect $
   catchException (const $ pure Nothing)
-                 (Just <$> Buffer.fromString s e)
+    (Just <$> Buffer.fromString s e)
 
 -- | *Θ(n)* Decode a string.
 toString :: ByteString -> Encoding -> String
