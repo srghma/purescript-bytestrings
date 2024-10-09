@@ -1,0 +1,28 @@
+package:
+  dependencies:
+    - arrays
+    - effect
+    - exceptions
+    - foldable-traversable
+    - integers
+    - leibniz
+    - maybe
+    - node-buffer
+    - partial
+    - prelude
+    - quickcheck
+    - quotient
+    - unsafe-coerce
+  name: bytestrings
+  test:
+    main: Test.Main
+    dependencies:
+      - console
+      - quickcheck-laws
+workspace:
+  extraPackages:
+    quotient:
+      git: https://github.com/srghma/purescript-quotient.git
+      ref: master
+  packageSet:
+    registry: 60.4.0
